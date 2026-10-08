@@ -15,4 +15,21 @@ KEY TERMS & DEFINITIONS
 INPUTS
 
 OUTPUTS
+
+Work Notes
+Field names: row and col DONE
+Indexing: 0 based, board is a 10x10 array
+Type: usize DONE
+Mapping: Letter -> Column, Number -> Row
+Derives: Debug, Clone. Copy, PartialEq DONE
 */
+
+// Debug and PartialEq for printing and tests; Clone and Copy so board.rs
+// can reuse a Coord without it being moved
+#[derive(Debug, Clone, Copy, PartialEq)]
+
+// A board square, 0-indexed for array use: "A1" is (0, 0), "J10" is (9, 9)
+pub struct Coord {
+    pub row: usize,
+    pub col: usize,
+}
