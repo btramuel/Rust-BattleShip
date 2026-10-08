@@ -1,6 +1,6 @@
 /*
    Purpose
-     Entry point for the game. Wires the other modules together and runs the turn loop for a local two-player match. 
+     Entry point for the game. Wires the other modules together and runs the turn loop for a local two player match. 
      Also handles the "demo" argument that runs the requirement showcase instead of a game.
 
    Key Terms and Definitions
@@ -43,7 +43,7 @@ use std::io::Write;
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    // "cargo run demo runs the requirement showcase instead of a game
+    // "cargo run demo" runs the requirement showcase instead of a game
     if args.len() > 1 {
         if args[1] == "demo" {
             demo::run();
