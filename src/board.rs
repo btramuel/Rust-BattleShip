@@ -1,13 +1,20 @@
 /*
    Purpose
-
-
+        Implements the battleship board, ships, hit tracking, and rendering.
    Key Terms and Definitions
+    
+        Ship: A structure representing a ship with a name, size, and hit count.
+        Board: A 10x10 grid that holds ships and tracks shots fired.
+        Shot: An enum representing the result of firing at a coordinate (Hit, Sunk, Miss, AlreadyFired).
 
    Inputs
-
+        - Ship placement coordinates and orientation (horizontal/vertical).
+        - Firing coordinates.
 
    Output
+        - Result of ship placement (Ok or Err with message).
+        - Result of firing at a coordinate (Hit, Sunk, Miss, AlreadyFired).
+        - Rendered board as a string for display.
 
  */
 
