@@ -1,5 +1,6 @@
 /*
 PURPOSE
+
     This is the translator between the player and the game. This file
     has two jobs:
 
@@ -12,18 +13,27 @@ PURPOSE
 
 KEY TERMS & DEFINITIONS
 
-Coord
+Coord - a square on the board as row and col numbers. Both start at 0, so "A1" is
+     row 0, col 0 and "J10" is row 9, col 9. The letter picks the column, the number picks the row.
+
+     ParseError - the enum for the ways input can go wrong: EmptyInput, InvalidLetter,
+     InvalidNumber, and NumberOutOfRange. Display gives each one a message for the player.
+
+     Result - Rust's replacement for exceptions. parse_move gives back Ok(Coord) when the
+     input is good, or Err(ParseError) when it isn't, and the caller has to handle both.
+
+     0-indexed - counting from 0 instead of 1. Players type rows 1-10 but the board array
+     uses 0-9, so we subtract 1.
 
 INPUTS
 
+- text the player typed, as a &str. Spaces and lowercase are fine, " b7 " works.
+
 OUTPUTS
 
-Work Notes
-Field names: row and col DONE
-Indexing: 0 based, board is a 10x10 array
-Type: usize DONE
-Mapping: Letter -> Column, Number -> Row
-Derives: Debug, Clone. Copy, PartialEq DONE
+ - Ok(Coord) for a valid square, A-J and 1-10
+     - Err(ParseError) for anything else. Bad input never crashes the program.
+
 */
 
 // Formatting tool
