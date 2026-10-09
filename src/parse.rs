@@ -48,6 +48,7 @@ pub enum ParseError {
     NumberOutOfRange,
 }
 
+// Display for ParseError
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -57,4 +58,8 @@ impl fmt::Display for ParseError {
             ParseError::NumberOutOfRange => write!(f, "That is off the map. Rows span from 1 to 10"),
         }
     }
+}
+
+pub fn parse_move(input: &str) -> Result<Coord, ParseError> {
+    todo!()
 }
