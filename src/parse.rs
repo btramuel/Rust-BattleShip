@@ -47,3 +47,14 @@ pub enum ParseError {
     InvalidNumber,
     NumberOutOfRange,
 }
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ParseError::EmptyInput => write!(f, "You fired at nothing. Please enter a square, such as B6"),
+            ParseError::InvalidLetter => write!(f, "That column is in another ocean. Use a letter from A to J"),
+            ParseError::InvalidNumber => write!(f, "Rows are numbers, captain. Try something like B6"),
+            ParseError::NumberOutOfRange => write!(f, "That is off the map. Rows span from 1 to 10"),
+        }
+    }
+}
