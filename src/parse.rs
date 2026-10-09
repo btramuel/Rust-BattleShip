@@ -12,6 +12,8 @@ PURPOSE
 
 KEY TERMS & DEFINITIONS
 
+Coord
+
 INPUTS
 
 OUTPUTS
@@ -24,6 +26,9 @@ Mapping: Letter -> Column, Number -> Row
 Derives: Debug, Clone. Copy, PartialEq DONE
 */
 
+// Formatting tool
+use std::fmt;
+
 // Debug and PartialEq for printing and tests; Clone and Copy so board.rs
 // can reuse a Coord without it being moved
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -32,4 +37,13 @@ Derives: Debug, Clone. Copy, PartialEq DONE
 pub struct Coord {
     pub row: usize,
     pub col: usize,
+}
+
+//Enum for error choices, empty input, bad letter, bad number, and number being off the board
+#[derive(Debug, PartialEq)]
+pub enum ParseError {
+    EmptyInput,
+    InvalidLetter,
+    InvalidNumber,
+    NumberOutOfRange,
 }
