@@ -60,6 +60,42 @@ impl fmt::Display for ParseError {
     }
 }
 
+// Turns what the player typed (like " b7 ") into a Coord, or a ParseError if it's bad
 pub fn parse_move(input: &str) -> Result<Coord, ParseError> {
-    todo!()
+    // Step 1: clean up the input, " b7 " becomes "B7"
+    let cleaned = input.trim().to_uppercase();
+
+    // Step 2: nothing typed at all
+    if cleaned.is_empty() {
+        return Err(ParseError::EmptyInput);
+    }
+
+    // Step 3: split the first character (column letter) from the rest (row number)
+    let mut chars = cleaned.chars();
+    let letter = match chars.next() {
+        Some(c) => c,
+        None => return Err(ParseError::EmptyInput),
+    };
+    let number_text = chars.as_str();
+
+    // Step 4a: the column has to be a letter from A to J
+    if !letter.is_ascii_uppercase() || letter > 'J' {
+        return Err(ParseError::InvalidLetter);
+    }
+    let col = (letter as u8 - b'A') as usize; // A -> 0, B -> 1, ... J -> 9
+
+    // Step 4b: the rest has to be a number
+    let number = match number_text.parse::<usize>() {
+        Ok(n) => n,
+        Err(_) => return Err(ParseError::InvalidNumber),
+    };
+
+    // Step 4c: the number has to be on the board, 1 to 10
+    if number < 1 || number > 10 {
+        return Err(ParseError::NumberOutOfRange);
+    }
+    let row = number - 1; // players count from 1, the array counts from 0
+
+    // Step 5: everything checked out
+    Ok(Coord { row, col })
 }
