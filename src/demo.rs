@@ -27,6 +27,7 @@ use crate::board::Ship;
 use crate::board::Shot;
 use crate::parse;
 use crate::stats;
+use std::fs;
 
 pub fn run() {
     println!("=== Rust Battleship - requirement demo ===");
@@ -95,7 +96,8 @@ fn program_two() {
     }
 
     // for loop over an array of squares, firing at each one
-    let squares = ["A1", "A2", "E5"];
+    // the Destroyer sits on A1 and B1 so those two sink it. E5 is a empty water
+    let squares = ["A1", "B1", "E5", "B1"];
     for square in squares {
         match parse::parse_move(square) {
             Ok(coord) => {
@@ -132,10 +134,25 @@ fn program_three() {
 
     println!("");
 
-    // same idea with files, which fail for reasons outside our control
+    // files are the other thing that fails for reasons outside our control.
+    // a missing file isn't really an error, so load_history treats it as no matches yet
     match stats::load_history("file_that_does_not_exist.json") {
-        Ok(history) => println!("loaded {} past matches", history.len()),
-        Err(e) => println!("missing history file handled cleanly: {}", e),
+        Ok(history) => println!("missing file handled cleanly: {} past matches", history.len()),
+        Err(e) => println!("missing file: {}", e),
+    }
+
+    // a file that IS there but has junk in it is a real error, so make one on purpose
+    let junk_path = "demo_corrupt.json";
+    match fs::write(junk_path, "{ this is not valid history }") {
+        Ok(()) => {
+            match stats::load_history(junk_path) {
+                Ok(history) => println!("somehow loaded {} matches", history.len()),
+                Err(e) => println!("corrupted file rejected: {}", e),
+            }
+            // clean up after ourselves so the next run starts fresh
+            let _ = fs::remove_file(junk_path);
+        }
+        Err(e) => println!("couldn't write the test file: {}", e),
     }
 }
 
