@@ -10,3 +10,7 @@ PURPOSE
 
 
 */
+
+pub struct Ai {
+    fired: [[bool; 10]; 10],
+}
