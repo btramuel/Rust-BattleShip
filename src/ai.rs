@@ -22,3 +22,17 @@ impl Ai {
         Ai { fired: [[false; 10]; 10] }
     }
 }
+
+// Picks the next square to fire at. For now it goes in order (A1, B1, C1...),
+// and it never picks a square twice.
+pub fn choose_shot(&mut self) -> Coord {
+    for row in 0..10 {
+        for col in 0..10 {
+            if !self.fired[row][col] {
+                self.fired[row][col] = true;
+                return Coord { row: row, col: col };
+            }
+        }
+    }
+    panic!("The AI has already fired at every square");
+}
