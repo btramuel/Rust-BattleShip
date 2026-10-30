@@ -11,6 +11,14 @@ PURPOSE
 
 */
 
+// The computer opponent which remembers every square it has fired so it doesnt repeat any fires in the same place
 pub struct Ai {
     fired: [[bool; 10]; 10],
+}
+
+impl Ai {
+    // Makes a fresh AI that hasn't fired anywhere yet
+    pub fn new() -> Ai {
+        Ai { fired: [[false; 10]; 10] }
+    }
 }
