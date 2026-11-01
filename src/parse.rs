@@ -38,10 +38,12 @@ OUTPUTS
 
 // Formatting tool
 use std::fmt;
+use serde::Deserialize;
+use serde::Serialize;
 
 // Debug and PartialEq for printing and tests; Clone and Copy so board.rs
 // can reuse a Coord without it being moved
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize  )]
 
 // A board square, 0-indexed for array use: "A1" is (0, 0), "J10" is (9, 9)
 pub struct Coord {

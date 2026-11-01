@@ -30,6 +30,8 @@
 
 mod board;
 mod demo;
+mod game;
+mod net;
 mod parse;
 mod stats;
 

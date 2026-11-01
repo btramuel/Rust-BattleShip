@@ -19,6 +19,8 @@
  */
 
 use crate::parse::Coord;
+use serde::Deserialize;
+use serde::Serialize;
 
 const BOARD_SIZE: usize = 10;
 
@@ -38,7 +40,7 @@ impl Ship {
 }
 
 // Possible results of a shot fired at the board
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Shot {
     Hit, 
     Sunk(String),
