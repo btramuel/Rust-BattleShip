@@ -28,6 +28,7 @@
 
  */
 
+mod ai;
 mod board;
 mod demo;
 mod game;
