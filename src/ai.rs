@@ -26,9 +26,19 @@ impl Ai {
         Ai { fired: [[false; 10]; 10], targets: Vec::new() }
     }
 
-    // Picks the next square to fire at. For now it goes in order (A1, B1, C1...),
-    // and it never picks a square twice.
+    // Picks the next square to fire at. If a recent hit queued up nearby squares,
+    // it tries those first. Otherwise it goes in order (A1, B1, C1...).
+    // It never picks a square twice.
     pub fn choose_shot(&mut self) -> Coord {
+        // Target mode: chase squares next to a hit
+        while let Some(target) = self.targets.pop() {
+            if !self.fired[target.row][target.col] {
+                self.fired[target.row][target.col] = true;
+                return target;
+            }
+        }
+
+        // Hunt mode: nothing queued, so take the next unfired square
         for row in 0..10 {
             for col in 0..10 {
                 if !self.fired[row][col] {
