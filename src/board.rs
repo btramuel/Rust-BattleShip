@@ -22,7 +22,7 @@ use crate::parse::Coord;
 use serde::Deserialize;
 use serde::Serialize;
 
-const BOARD_SIZE: usize = 10;
+pub const BOARD_SIZE: usize = 10;
 
 //Represents a ship placed on the board
 #[derive(Debug, Clone)]
