@@ -24,6 +24,13 @@ use serde::Serialize;
 
 pub const BOARD_SIZE: usize = 10;
 
+pub const FLEET: [(&str, usize); 5] = [
+    ("Carrier", 5),
+    ("Battleship", 4),
+    ("Cruiser", 3),
+    ("Submarine", 3),
+    ("Destroyer", 2),
+];
 //Represents a ship placed on the board
 #[derive(Debug, Clone)]
 pub struct Ship {
