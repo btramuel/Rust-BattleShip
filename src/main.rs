@@ -52,6 +52,10 @@ fn main() {
             demo::run();
             return;
         }
+        if args[1] == "ai" {
+            play_vs_computer();
+            return;
+        }
     }
 
     println!("Battleship");
@@ -172,7 +176,119 @@ fn main() {
             }
         }
     }
+/*
+   Use case four, play against the computer. The AI lives in ai.rs and only does two things, pick a square
+   to fire at, and remember what happened so it can hunt around a hit. Everything else is the same board
+   and the same rules the two player game uses, so nothing in here knows how the AI makes up its mind.
 
+   The computer's fleet goes down with place_fleet_randomly, which is also use case one's random placement.
+*/
+fn play_vs_computer() {
+    println!("Battleship - you against the computer");
+    println!("");
+
+    let name = read_line("Your name: ");
+
+    let mut my_board = Board::new();
+    let mut ai_board = Board::new();
+    let mut brain = ai::Ai::new();
+
+    // the computer always places at random, you get the choice
+    ai_board.place_fleet_randomly();
+
+    let answer = read_line("Place your ships yourself, or random? (self/random): ");
+    if answer == "random" || answer == "r" {
+        my_board.place_fleet_randomly();
+        println!("");
+        println!("{}", my_board.render(false));
+    } else {
+        println!("");
+        println!("{} place your ships.", name);
+        place_fleet(&mut my_board);
+    }
+
+    let mut my_shots: u32 = 0;
+    let mut my_hits: u32 = 0;
+    let mut game_over = false;
+    let mut i_won = false;
+
+    while game_over == false {
+        // your go
+        println!("");
+        println!("{}", ai_board.render(true)); // true means hide the computer's ships
+
+        let coord = read_coord("Fire at (e.g. B7): ");
+        let result = ai_board.fire(coord);
+
+        let mut took_a_shot = true;
+        match result {
+            Shot::Hit => {
+                my_shots = my_shots + 1;
+                my_hits = my_hits + 1;
+                println!("Hit!");
+            }
+            Shot::Sunk(ship_name) => {
+                my_shots = my_shots + 1;
+                my_hits = my_hits + 1;
+                println!("Hit! You sank their {}.", ship_name);
+            }
+            Shot::Miss => {
+                my_shots = my_shots + 1;
+                println!("Miss.");
+            }
+            Shot::AlreadyFired => {
+                took_a_shot = false;
+                println!("You already fired there. Try again.");
+            }
+        }
+
+        if ai_board.all_sunk() {
+            game_over = true;
+            i_won = true;
+        }
+
+        // the computer's go, but only if you actually used your turn
+        if game_over == false && took_a_shot {
+            let ai_coord = brain.choose_shot();
+            let ai_result = my_board.fire(ai_coord);
+
+            // tell the AI how that went so it can hunt around a hit next time
+            brain.record_result(ai_coord, &ai_result);
+
+            let square = square_name(ai_coord);
+            match ai_result {
+                Shot::Hit => println!("Computer fires at {} - hit.", square),
+                Shot::Sunk(ship_name) => {
+                    println!("Computer fires at {} - hit, and sank your {}.", square, ship_name)
+                }
+                Shot::Miss => println!("Computer fires at {} - miss.", square),
+                Shot::AlreadyFired => println!("Computer fired at {} again.", square),
+            }
+
+            if my_board.all_sunk() {
+                game_over = true;
+                i_won = false;
+            }
+        }
+    }
+
+    println!("");
+    println!("{}", my_board.render(false));
+
+    if i_won {
+        println!("{} wins!", name);
+        save_match(name.clone(), String::from("Computer"), my_shots, my_hits);
+    } else {
+        println!("The computer wins.");
+        save_match(String::from("Computer"), name.clone(), my_shots, my_hits);
+    }
+}
+
+// turn a Coord back into something a person can read, so "row 1 col 6" prints as "G2"
+fn square_name(coord: Coord) -> String {
+    let letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+    return format!("{}{}", letters[coord.col], coord.row + 1);
+}
     save_match(winner_name, loser_name, winner_shots, winner_hits);
 }
 

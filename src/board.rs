@@ -19,6 +19,7 @@
  */
 
 use crate::parse::Coord;
+use rand::Rng;
 use serde::Deserialize;
 use serde::Serialize;
 
@@ -152,6 +153,35 @@ impl Board {
     pub fn all_sunk(&self) -> bool {
         !self.ships.is_empty()
             && self.ships.iter().all(|ship| ship.is_sunk())
+    }
+
+    /*
+       Drop the whole fleet on the board at random spots. keeps trying a fresh square and direction until
+       place_ship accepts one, place_ship takes the Ship by value, so a rejected one is gone and we build a new one each go.
+    */
+    pub fn place_fleet_randomly(&mut self) {
+        let mut rng = rand::rng();
+
+        for (name, size) in FLEET {
+            loop {
+                let row = rng.random_range(0..BOARD_SIZE);
+                let col = rng.random_range(0..BOARD_SIZE);
+                let horizontal = rng.random_bool(0.5);
+
+                let ship = Ship {
+                    name: String::from(name),
+                    size: size,
+                    hits: 0,
+                };
+
+                match self.place_ship(ship, Coord { row: row, col: col }, horizontal) {
+                    Ok(()) => break,
+                    Err(_) => {
+                        // didn't fit or overlapped something, just try again
+                    }
+                }
+            }
+        }
     }
 
     // Renders the board as a string for display, optionally hiding ships
