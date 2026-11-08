@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Battleship</title>
+<style>
+  :root {
+    --sea: #12344a; --sea-line: #1f4f6b; --sea-hover: #2a6a8c;
+    --ship: #8aa0ad; --hit: #e04a3a; --miss: #dfeaf0; --sunk: #6b1f1a;
+    --bg: #0b1f2d; --text: #e6eef2; --muted: #8fa9b8; --accent: #f2b84b;
+    --cell: min(7.2vw, 38px);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+         background: var(--bg); color: var(--text);
+         font-family: "Trebuchet MS", "Segoe UI", sans-serif; }
+  main { flex: 1; display: flex; flex-wrap: wrap; gap: 2.5rem; justify-content: center;
+         align-items: flex-start; padding: 2rem 1rem 1rem; }
+  section h2 { margin: 0 0 .6rem; font-size: 1rem; font-weight: 600; color: var(--muted); }
+  .grid { display: grid; grid-template-columns: repeat(11, var(--cell));
+          grid-auto-rows: var(--cell); gap: 2px; }
+  .lbl { display: grid; place-items: center; font-size: .75rem; color: var(--muted); }
+  .cell { background: var(--sea); border: 0; border-radius: 3px; padding: 0; display: grid; place-items: center; }
+  .cell.ship { background: var(--ship); }
+  .cell.hit { background: var(--hit); }
+  .cell.sunk { background: var(--sunk); }
+  .cell.miss::after { content: ""; width: 28%; height: 28%; border-radius: 50%; background: var(--miss); }
+  #enemy .cell.live { cursor: crosshair; }
+  #enemy .cell.live:hover, #enemy .cell.live:focus-visible { background: var(--sea-hover); outline: 2px solid var(--accent); }
+  #enemy .cell:disabled { cursor: default; }
+  #enemy.waiting { opacity: .6; }
+  #status { padding: .9rem 1.2rem; border-top: 1px solid var(--sea-line); background: #091822;
+            min-height: 3.2rem; display: flex; align-items: center; }
+  #status.turn { color: var(--accent); }
+  #status.error { color: var(--hit); }
+  #join { display: flex; gap: .5rem; padding: 1rem; justify-content: center; }
+  #join input { padding: .5rem .7rem; border-radius: 4px; border: 1px solid var(--sea-line);
+                background: var(--sea); color: var(--text); font: inherit; }
+  #join button { padding: .5rem 1rem; border: 0; border-radius: 4px; background: var(--accent);
+                 color: #1a1200; font: inherit; font-weight: 600; cursor: pointer; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<form id="join">
+  <input id="name" placeholder="Your name" maxlength="20" required autofocus>
+  <button type="submit">Join game</button>
+</form>
+<main id="boards" hidden>
+  <section><h2>Your fleet</h2><div class="grid" id="mine"></div></section>
+  <section><h2>Enemy waters</h2><div class="grid waiting" id="enemy"></div></section>
+</main>
+<div id="status">Enter your name to join a game.</div>
+<script src="app.js"></script>
+</body>
+</html>
