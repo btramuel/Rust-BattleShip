@@ -1,10 +1,12 @@
 
-use crate::board::Ship;
 use crate::board::Shot;
-use crate::board::FLEET;
+use crate::board::BOARD_SIZE;
 use crate::game::Match;
-use crate::parse;
+use crate::net::ClientMessage;
+use crate::net::PlayerView;
+use crate::net::ServerMessage;
 use crate::stats;
+use crate::stats::MatchResult;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use std::thread;
@@ -26,8 +28,11 @@ impl Player {
 }
 
 //send a message to the player. Returns true if the message was sent successfully, false otherwise
-fn say(player: &mut Player, text: &str) -> bool {
-    return player.socket.send(Message::Text(text.into())).is_ok();
+fn send(player: &mut Player, msg: &ServerMessage) -> bool {
+    match serde_json::to_string(msg) {
+        Ok(text) => player.socket.send(Message::Text(text.into())).is_ok(),
+        Err(_) => false,
+    }
 }
 
 // wait for one text message. None means the player disconnected
@@ -62,20 +67,20 @@ pub fn run(address: &str) {
             None => continue,
         };
  
-        // the first thing they have to say is JOIN name
-        let name = match hear(&mut player) {
-            Some(line) if line.starts_with("JOIN ") && line[5..].trim().len() > 0 => {
-                line[5..].trim().to_string()
-            }
+        // the first thing they have to say is {"Join":"name"}
+        let name = match hear(&mut player)
+            .and_then(|line| serde_json::from_str::<ClientMessage>(&line).ok())
+        {
+            Some(ClientMessage::Join(n)) if !n.trim().is_empty() => n.trim().to_string(),
             _ => {
-                say(&mut player, "ERROR first message must be: JOIN yourname");
+                send(&mut player, &ServerMessage::Error(
+                    "first message must be a Join with your name".to_string()));
                 continue;
             }
         };
- 
-        say(&mut player, &format!("WELCOME {}", name));
- 
-        // if somebody is already waiting, pair them up. otherwise this player waits
+
+        send(&mut player, &ServerMessage::Welcome(name.clone()));
+
         match lobby.take() {
             Some((name1, player1)) => {
                 thread::spawn(move || {
@@ -83,7 +88,7 @@ pub fn run(address: &str) {
                 });
             }
             None => {
-                say(&mut player, "WAITING for an opponent");
+                send(&mut player, &ServerMessage::WaitingForOpponent);
                 lobby = Some((name, player));
             }
         }
@@ -92,8 +97,100 @@ pub fn run(address: &str) {
 
 // stub: just proves that two players got paired
 fn play_match(name1: String, mut p1: Player, name2: String, mut p2: Player) {
-    say(&mut p1, &format!("MATCH FOUND - you are playing {}", name2));
-    say(&mut p2, &format!("MATCH FOUND - you are playing {}", name1));
+    let mut game = Match::new(name1.clone(), name2.clone());
+
+    // no placement phase in the protocol yet, so both fleets go down randomly
+    game.board1.place_fleet_randomly();
+    game.board2.place_fleet_randomly();
+
+    send_views(&game, &mut p1, &mut p2);
+
+    // Some(true) means player one won by forfeit, Some(false) means player two did
+    let mut forfeit: Option<bool> = None;
+
+    while !game.is_over() {
+        let p1_up = game.player1_turn;
+        let (mover, waiter) = if p1_up { (&mut p1, &mut p2) } else { (&mut p2, &mut p1) };
+
+        send(mover, &ServerMessage::YourTurn);
+        send(waiter, &ServerMessage::WaitingForOpponent);
+
+        // None from hear() means the mover disconnected, so the other player wins
+        let line = match hear(mover) {
+            Some(line) => line,
+            None => {
+                forfeit = Some(!p1_up);
+                break;
+            }
+        };
+
+        // anything that isn't valid JSON for a ClientMessage re-prompts, no turn lost
+        let msg = match serde_json::from_str::<ClientMessage>(&line) {
+            Ok(m) => m,
+            Err(_) => {
+                send(mover, &ServerMessage::Error("could not understand that message".to_string()));
+                continue;
+            }
+        };
+
+        let coord = match msg {
+            ClientMessage::Fire(c) => c,
+            _ => {
+                send(mover, &ServerMessage::Error("only Fire is allowed during a match".to_string()));
+                continue;
+            }
+        };
+
+        // Board::fire counts out-of-bounds as a miss, so reject it here instead of burning their turn
+        if coord.row >= BOARD_SIZE || coord.col >= BOARD_SIZE {
+            send(mover, &ServerMessage::Error("that square is off the board".to_string()));
+            continue;
+        }
+
+        let result = game.fire(coord);
+
+        // Match::fire doesn't swap turns on this, so just ask again
+        if result == Shot::AlreadyFired {
+            send(mover, &ServerMessage::Error("you already fired there, pick another square".to_string()));
+            continue;
+        }
+
+        send(mover, &ServerMessage::ShotResult(result));
+        send_views(&game, &mut p1, &mut p2);
+    }
+
+    // a forfeit decides it directly, otherwise whoever sank the other fleet won
+    let p1_wins = forfeit.unwrap_or(game.board2.all_sunk());
+    let (winner, loser) = if p1_wins { (&name1, &name2) } else { (&name2, &name1) };
+
+    if forfeit.is_some() {
+        let remaining = if p1_wins { &mut p1 } else { &mut p2 };
+        send(remaining, &ServerMessage::Error("opponent disconnected, you win by forfeit".to_string()));
+    }
+
+    // sending to the player who left just fails quietly
+    let over = ServerMessage::GameOver { winner: winner.clone() };
+    send(&mut p1, &over);
+    send(&mut p2, &over);
+
+    let (shots, hits) = if p1_wins {
+        (game.player1_shots, game.player1_hits)
+    } else {
+        (game.player2_shots, game.player2_hits)
+    };
+
+    let result = MatchResult { winner: winner.clone(), loser: loser.clone(), shots, hits };
+    if let Err(e) = stats::save_result(&result) {
+        eprintln!("could not save match result: {}", e);
+    }
+}
+
+// each player gets their own view, with the enemy ships hidden by view_for. this is the anti-cheat step
+fn send_views(game: &Match, p1: &mut Player, p2: &mut Player) {
+    let v1: PlayerView = game.view_for(true);
+    let v2: PlayerView = game.view_for(false);
+    send(p1, &ServerMessage::ViewUpdate(v1));
+    send(p2, &ServerMessage::ViewUpdate(v2));
 }
 
 // lets you start the server without touching main.rs:  cargo test serve -- --nocapture
