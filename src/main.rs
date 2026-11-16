@@ -56,6 +56,13 @@ fn main() {
             play_vs_computer();
             return;
         }
+        // cargo run - server, defaults to 127.0.0.1:8080
+        // cargo run - server 0.0.0.0:8080, so another machine on the wifi can join
+        if args[1] == "server" {
+            let address = if args.len() > 2 { args[2].as_str() } else { "127.0.0.1:8080" };
+            net::server::run(address);
+            return;
+        }
     }
 
     println!("Battleship");
