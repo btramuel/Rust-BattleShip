@@ -37,7 +37,7 @@ const COLS = "ABCDEFGHIJ" // game columns
 const fireMsg = (r, c) => useJson ? JSON.stringify({ Fire: { row: r, col: c } }) : COLS[c] + (r + 1); // get grid position (e.g. B7)
 const joinMsg = name => useJson ? JSON.stringify({ Join: name }) : "JOIN " + name;
 
-const SEND_JSON = false;
+const SEND_JSON = true;
 
 const MOCK = new URLSearchParams(location.search).has("mock"); // mock server for testing 
 const useJson = SEND_JSON && !MOCK;
