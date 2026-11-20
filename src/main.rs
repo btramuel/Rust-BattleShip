@@ -1,31 +1,42 @@
 /*
    Purpose
-     Entry point for the game. Wires the other modules together and runs the turn loop for a local two player match. 
-     Also handles the "demo" argument that runs the requirement showcase instead of a game.
+     Entry point for the whole project. Declares the modules so the compiler can see the other files, reads
+     the command line argument to decide which mode to run, and holds the local two player game itself,
+     the turn loop, the ship placement prompts, and the match against the computer.
+
+     Everything else lives in its own file. This one wires them together and decides what runs.
 
    Key Terms and Definitions
-     mod - the line at the top of this file that tells Rust a .rs file exists. Without it the compiler never looks at board.rs, parse.rs, etc.
+     mod - the lines at the top of this file that tell Rust a .rs file exists. without one the compiler never
+     looks at the file at all, which is why an empty module compiles fine and a missing mod line hides a
+     whole file from the build.
 
-     hot-seat - both players take turns on the same machine, passing the keyboard back and forth. No networking involved.
+     hot-seat - both players take turns on the same machine, passing the keyboard back and forth. no
+     networking, and hiding the other fleet is on the honour system. this is what plain "cargo run" does.
 
-     turn loop - the while loop that keeps running until one player's fleet is sunk. Each pass: show the board, read a move, fire, swap players.
+     the modes - demo runs the scripted requirement showcase, ai plays you against the computer, server
+     starts the WebSocket game server, client runs one scripted client against a server, and bench runs
+     several scripted matches at once for the concurrency experiment. no argument gives a local game.
 
-     stdin - standard input, meaning whatever the player types into the terminal. We read a line at a time and hand it to parse_move().
+     stdin - standard input, meaning whatever the player types into the terminal. we read a line at a time
+     and hand it to parse_move().
 
-     Shot - the enum board::fire() gives back. Tells us whether the shot was a Hit, Miss, Sunk, or a square that was AlreadyFired at.
+     Shot - the enum board::fire() gives back. tells us whether the shot was a Hit, Miss, Sunk, or a square
+     that was AlreadyFired at.
 
    Inputs
-     - command line args - "demo" runs the showcase, anything else starts a game
+     - command line args - demo, ai, server, client or bench. anything else starts a local game
      - keyboard input - player names and moves like "B7", read from stdin
      - parse::parse_move() - turns typed text into a Coord, or an error
      - board::Board - holds the grid and ships, handles placing and firing
+     - ai::Ai - picks the computer's shots and remembers what happened
+     - net::server and net::client - the networked modes
      - stats::save_result() - writes the finished match to history.json
 
    Output
      - Prints both boards and the result of each shot to the terminal
      - Prints the winner when all of one player's ships are sunk
      - Saves the match result so stats survive between runs
-
  */
 
 mod ai;
