@@ -2,11 +2,10 @@
 
 PURPOSE
     The purpose of ai.rs is to let the user play Battleship against the computer.
-    The AI "brain" has three jobs:
+    The computer's fleet is placed by place_fleet_randomly in board.rs, so the AI "brain" has two jobs:
 
-    (1) Set up five ships on the board, without showing where
-    (2) Each turn, decide which square to fire at. Never repeat the square and never go off board
-    (3) Learn by remembering what happened. If hit, aim near that square instead of guessing randomly
+    (1) Each turn, decide which square to fire at. Never repeat the square and never go off board
+    (2) Learn by remembering what happened. If hit, aim near that square instead of guessing randomly
 
 
 */
@@ -27,7 +26,7 @@ impl Ai {
     }
 
     // Picks the next square to fire at. If a recent hit queued up nearby squares,
-    // it tries those first. Otherwise it goes in order (A1, B1, C1...).
+    // it tries those first. Otherwise it picks a random square it hasn't fired at yet.
     // It never picks a square twice.
     pub fn choose_shot(&mut self) -> Coord {
         // Target mode: chase squares next to a hit
@@ -38,16 +37,24 @@ impl Ai {
             }
         }
 
-        // Hunt mode: nothing queued, so take the next unfired square
+         // Hunt mode: nothing queued, so collect every unfired square...
+        let mut options = Vec::new();
         for row in 0..10 {
             for col in 0..10 {
                 if !self.fired[row][col] {
-                    self.fired[row][col] = true;
-                    return Coord { row: row, col: col };
+                    options.push(Coord { row: row, col: col });
                 }
             }
         }
-        panic!("The AI has already fired at every square");
+
+        if options.is_empty() {
+            panic!("The AI has already fired at every square");
+        }
+
+        // ...and pick one of them at random
+        let pick = options[rand::random_range(0..options.len())];
+        self.fired[pick.row][pick.col] = true;
+        pick
     }
 
     // After each shot, updates what the AI knows.
