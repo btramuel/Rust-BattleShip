@@ -67,6 +67,23 @@ fn main() {
             play_vs_computer();
             return;
         }
+                // cargo run - client, plays one whole match on its own against a running server
+        // cargo run - client 0.0.0.0:8080, point it at a server on another machine
+        if args[1] == "client" {
+            let address = if args.len() > 2 { args[2].as_str() } else { "127.0.0.1:8080" };
+            match net::client::play_once(address, "bot") {
+                Some(s) => println!("done: won={} shots={} hits={} leaks={}", s.won, s.shots, s.hits, s.leaks),
+                None => println!("could not play a match against {}", address),
+            }
+            return;
+        }
+        // cargo run - bench 10, runs ten matches at once and prints the timings. this is experiment two
+        if args[1] == "bench" {
+            let matches: usize = if args.len() > 2 { args[2].parse().unwrap_or(1) } else { 1 };
+            net::client::bench("127.0.0.1:8080", matches);
+            return;
+        }
+        
         // cargo run - server, defaults to 127.0.0.1:8080
         // cargo run - server 0.0.0.0:8080, so another machine on the wifi can join
         if args[1] == "server" {
