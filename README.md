@@ -4,10 +4,10 @@
 
 | Name | Student ID | Section | Files owned |
 | --- | --- | --- | --- |
-| Brian Tramuel | 801441165 | ITCS 5102 | `main.rs`, `game.rs`, `demo.rs`, `net/mod.rs`, README |
-| Rebecca Carpenter | 801427942 | ITCS 5102 | `stats.rs`, `web/` |
-| Lee Tropezado | 801421216 | ITCS 4102 | `parse.rs`, `ai.rs` |
-| Mason Paccadolmi | 801411781 | ITCS 4102 | `board.rs`, `net/server.rs` |
+| Brian Tramuel | ITCS 5102 | `main.rs`, `game.rs`, `demo.rs`, `net/mod.rs`, README |
+| Rebecca Carpenter | ITCS 5102 | `stats.rs`, `web/` |
+| Lee Tropezado | ITCS 4102 | `parse.rs`, `ai.rs` |
+| Mason Paccadolmi | ITCS 4102 | `board.rs`, `net/server.rs` |
 
 Language: **Rust** , with HTML, CSS and JavaScript for the browser client.
 
@@ -23,6 +23,9 @@ cargo run -- ai                  # play against the computer
 cargo run -- server              # start the game server on 127.0.0.1:8080
 cargo run -- server 0.0.0.0:8080 # start it so another machine on the network can join
 cargo run -- demo                # scripted showcase of the language requirements
+cargo run -- client              # one scripted client plays a match against a running server
+cargo run -- bench 10            # experiment 2: ten simultaneous matches, round trip timings
+cargo run -- fuzz                # experiment 3: malformed input at the parser and the server
 ```
 
 For a terminal game, enter two names, place five ships each, a starting square
@@ -62,6 +65,7 @@ src/
   game.rs        Brian    Match struct owning both boards; view_for builds the per-player view
   demo.rs        Brian    scripted showcase of the language requirements
   net/mod.rs     Brian    message protocol: ClientMessage, ServerMessage, PlayerView
+  net/client.rs  Brian    scripted client, concurrency benchmark, input robustness fuzzer
   net/server.rs  Mason    WebSocket server, lobby, match thread
   board.rs       Mason    Board and Ship, placement, firing, rendering
   parse.rs       Lee      "B7" into a Coord, ParseError
@@ -70,8 +74,8 @@ src/
   web/           Rebecca  browser client: two grids, click to fire, status line
 ```
 
-`src/net/client.rs` is empty. It was reserved for a scripted test client and
-was not written.
+`src/net/client.rs` holds the scripted test client and the two experiments that
+need the network: `bench` for concurrency and `fuzz` for input robustness.
 
 ## Language requirements
 
