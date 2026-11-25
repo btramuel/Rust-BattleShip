@@ -268,6 +268,7 @@ where
             Err(_) => return None,
         }
     }
+}
 
 /* 
    Experiment three, input robustness.
@@ -677,5 +678,4 @@ fn name_of(e: &ParseError) -> &str {
         ParseError::InvalidNumber => return "InvalidNumber",
         ParseError::NumberOutOfRange => return "NumberOutOfRange",
     }
-}
 }
