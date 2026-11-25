@@ -83,6 +83,14 @@ fn main() {
             net::client::bench("127.0.0.1:8080", matches);
             return;
         }
+
+        // cargo run - fuzz, throws four thousand malformed inputs at the parser then at the server
+        // cargo run - fuzz 20000, same thing with more random strings. this is experiment three
+        if args[1] == "fuzz" {
+            let count: usize = if args.len() > 2 { args[2].parse().unwrap_or(4000) } else { 4000 };
+            net::client::fuzz("127.0.0.1:8080", count);
+            return;
+        }
         
         // cargo run - server, defaults to 127.0.0.1:8080
         // cargo run - server 0.0.0.0:8080, so another machine on the wifi can join
