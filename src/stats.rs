@@ -38,6 +38,7 @@ use std::fmt;
 // for reading & writing file history 
 use std::fs; 
 use std::io::ErrorKind;
+use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 
 // file for finished matches
@@ -83,8 +84,13 @@ pub fn load_history(path: &str) -> Result<Vec<MatchResult>, StatsError> {
     return load_from(path);
 }
 
+// one saver at a time. without this, two matches finishing together both read the same
+// history, both add their own result, and whichever renames last wipes out the other one
+static SAVE_LOCK: Mutex<()> = Mutex::new(());
+
 // add a finished match to history file 
 pub fn save_result(result: &MatchResult) -> Result<(), StatsError> { 
+    let _guard = SAVE_LOCK.lock().unwrap();
     return save_to(HISTORY_FILE, result);
 }
 
